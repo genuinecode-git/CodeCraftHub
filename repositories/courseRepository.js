@@ -93,4 +93,22 @@ function remove(id) {
   return deleted;
 }
 
-module.exports = { findAll, findById, create, update, remove, VALID_STATUSES };
+/**
+ * Return aggregate statistics across all courses.
+ * @returns {{ total, byStatus }}
+ */
+function getStats() {
+  const courses = readCourses();
+
+  const byStatus = Object.fromEntries(VALID_STATUSES.map(s => [s, 0]));
+  for (const course of courses) {
+    if (byStatus[course.status] !== undefined) byStatus[course.status]++;
+  }
+
+  return {
+    total: courses.length,
+    byStatus,
+  };
+}
+
+module.exports = { findAll, findById, create, update, remove, getStats, VALID_STATUSES };

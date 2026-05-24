@@ -11,6 +11,20 @@ const repo    = require('../repositories/courseRepository');
 const { validateCreate, validateUpdate, validateQuery } = require('../middleware/validateCourse');
 
 /**
+ * GET /api/courses/stats
+ * Returns aggregate statistics: total courses and breakdown by status.
+ * Must be declared before /:id so Express doesn't treat "stats" as an id.
+ */
+router.get('/stats', (req, res) => {
+  try {
+    const stats = repo.getStats();
+    res.json({ success: true, data: stats });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Error retrieving stats', error: err.message });
+  }
+});
+
+/**
  * GET /api/courses
  * List courses with optional search, filter, sort and pagination.
  *

@@ -233,7 +233,49 @@ describe('DELETE /api/courses/:id', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CORS headers
+// GET /api/courses/stats
+// ─────────────────────────────────────────────────────────────────────────────
+describe('GET /api/courses/stats', () => {
+  beforeEach(async () => {
+    await createCourse({ status: 'Not Started' });
+    await createCourse({ status: 'Not Started' });
+    await createCourse({ status: 'In Progress' });
+    await createCourse({ status: 'Completed' });
+  });
+
+  test('returns total and byStatus counts', async () => {
+    const res = await request(app).get('/api/courses/stats');
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.total).toBe(4);
+    expect(res.body.data.byStatus).toEqual({
+      'Not Started': 2,
+      'In Progress': 1,
+      'Completed':   1,
+    });
+  });
+
+  test('returns zeros when no courses exist', async () => {
+    // Clear all courses
+    fs.writeFileSync(TEST_DATA, '[]', 'utf8');
+    const res = await request(app).get('/api/courses/stats');
+    expect(res.status).toBe(200);
+    expect(res.body.data.total).toBe(0);
+    expect(res.body.data.byStatus).toEqual({
+      'Not Started': 0,
+      'In Progress': 0,
+      'Completed':   0,
+    });
+  });
+
+  test('updates correctly after a course is deleted', async () => {
+    const created = (await createCourse({ status: 'Completed' })).body.data;
+    await request(app).delete(`/api/courses/${created.id}`);
+    const res = await request(app).get('/api/courses/stats');
+    expect(res.body.data.byStatus['Completed']).toBe(1); // back to 1
+  });
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 describe('CORS', () => {
   test('includes Access-Control-Allow-Origin header', async () => {
