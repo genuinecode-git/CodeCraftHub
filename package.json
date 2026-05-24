@@ -1,0 +1,20 @@
+{
+  "name": "codecrafthub",
+  "version": "1.0.0",
+  "description": "A simple personalized learning platform for developers to track courses",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "learning",
+    "courses",
+    "rest-api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
