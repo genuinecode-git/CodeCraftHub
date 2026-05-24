@@ -1,294 +1,572 @@
-````markdown
 # CodeCraftHub
 
-A simple, beginner-friendly learning platform where developers can track courses they want to learn. This project demonstrates REST API basics using Node.js and Express with file-based data storage (no database required).
+> A developer course-tracking REST API — built with Node.js and Express, following clean architecture principles.
+
+---
+
+## Table of Contents
+
+- [Project Overview](#project-overview)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Installation](#installation)
+- [Running the Application](#running-the-application)
+- [API Endpoint Documentation](#api-endpoint-documentation)
+  - [List Courses](#1-list-courses)
+  - [Get a Course](#2-get-a-course)
+  - [Create a Course](#3-create-a-course)
+  - [Update a Course](#4-update-a-course)
+  - [Delete a Course](#5-delete-a-course)
+- [Validation Rules](#validation-rules)
+- [Environment Variables](#environment-variables)
+- [Running Tests](#running-tests)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## Project Overview
+
+CodeCraftHub is a lightweight REST API for tracking developer learning courses. It lets you create, read, update, delete, search, filter, sort and paginate courses — all persisted to a local JSON file with no database required.
+
+The codebase is designed as a learning reference for clean API architecture:
+
+- **Repository pattern** — all data access is isolated in one file, making a future database swap trivial
+- **Validation middleware** — request validation is centralised and reusable across routes
+- **Single entry point** — one `server.js` wires everything together cleanly
+
+---
 
 ## Features
 
-✨ **Simple & Lightweight** - Perfect for learning REST API fundamentals
-📚 **Course Tracking** - Track course name, description, target completion date, and status
-🔄 **Full CRUD Operations** - Create, Read, Update, and Delete courses
-💾 **File-based Storage** - All data stored in a simple JSON file
-🚀 **Beginner-Friendly** - Well-documented code and clear project structure
+- Full **CRUD** operations for courses
+- **Search** — case-insensitive text search across name and description
+- **Filter** — filter courses by status
+- **Sort** — sort by name, status, completionDate, or createdAt; ascending or descending
+- **Pagination** — page/limit controls with total and totalPages in every list response
+- **CORS** — configured for browser-based frontends, lockable via environment variable
+- **Input validation** — field-level error messages on every bad request
+- **UUID-based IDs** — safe, globally unique identifiers
+- **20 integration tests** with Jest and Supertest
+
+---
 
 ## Project Structure
 
 ```
 CodeCraftHub/
-├── server.js                 # Main Express application
-├── package.json             # Project dependencies
-├── .gitignore              # Git ignore file
-├── data/
-│   └── courses.json        # JSON file storing all courses
+├── server.js                      # Entry point — Express app, middleware, routes
 ├── routes/
-│   └── courses.js          # Course API endpoints (CRUD)
+│   └── courses.js                 # Route handlers (thin controllers)
+├── middleware/
+│   └── validateCourse.js          # Validation rules per operation
+├── repositories/
+│   └── courseRepository.js        # All data access — swap this for a real DB
 ├── utils/
-│   └── fileHandler.js      # File operations helper functions
-├── public/                 # Static files (optional - for future frontend)
-└── README.md              # This file
+│   └── fileHandler.js             # JSON file read/write helpers
+├── data/
+│   └── courses.json               # Persisted course data
+├── __tests__/
+│   └── courses.test.js            # Integration tests
+└── package.json
 ```
 
-## Installation & Setup
+---
 
-### Prerequisites
-- **Node.js** (v14 or higher)
-- **npm** (comes with Node.js)
+## Installation
 
-### Steps
-
-1. **Clone or navigate to the repository**
-   ```bash
-   cd CodeCraftHub
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Start the server**
-   ```bash
-   npm start
-   ```
-
-4. **Verify it's running**
-   - Open your browser or API client to: `http://localhost:3000`
-   - You should see the API welcome message
-
-## REST API Endpoints
-
-### 1. Get All Courses
-- **Method**: `GET`
-- **URL**: `http://localhost:3000/api/courses`
-- **Response**:
-  ```json
-  {
-    "success": true,
-    "count": 2,
-    "data": [
-      {
-        "id": 1,
-        "name": "JavaScript Basics",
-        "description": "Learn the fundamentals of JavaScript",
-        "completionDate": "2026-06-30",
-        "status": "In Progress",
-        "createdAt": "2026-05-24T10:30:00.000Z"
-      }
-    ]
-  }
-  ```
-
-### 2. Get a Specific Course
-- **Method**: `GET`
-- **URL**: `http://localhost:3000/api/courses/1`
-- **Response**: Returns a single course object
-
-### 3. Create a New Course
-- **Method**: `POST`
-- **URL**: `http://localhost:3000/api/courses`
-- **Headers**: `Content-Type: application/json`
-- **Request Body**:
-  ```json
-  {
-    "name": "JavaScript Basics",
-    "description": "Learn the fundamentals of JavaScript",
-    "completionDate": "2026-06-30",
-    "status": "Not Started"
-  }
-  ```
-- **Valid Status Values**: `"Not Started"`, `"In Progress"`, `"Completed"`
-- **Response**: Returns the created course with an assigned ID
-
-### 4. Update a Course
-- **Method**: `PUT`
-- **URL**: `http://localhost:3000/api/courses/1`
-- **Headers**: `Content-Type: application/json`
-- **Request Body**: (All fields are optional)
-  ```json
-  {
-    "status": "In Progress",
-    "completionDate": "2026-06-15"
-  }
-  ```
-- **Response**: Returns the updated course object
-
-### 5. Delete a Course
-- **Method**: `DELETE`
-- **URL**: `http://localhost:3000/api/courses/1`
-- **Response**: Returns the deleted course object
-
-## Testing the API
-
-### Using cURL
+**Prerequisites:** Node.js v14 or higher, npm.
 
 ```bash
-# Get all courses
-curl http://localhost:3000/api/courses
+# 1. Clone the repository
+git clone https://github.com/genuinecode-git/CodeCraftHub.git
+cd CodeCraftHub
 
-# Create a new course
+# 2. Install dependencies
+npm install
+```
+
+That's it. No database setup, no environment file needed for local development.
+
+---
+
+## Running the Application
+
+```bash
+# Start the server (production)
+npm start
+
+# Start the server (development — same command, swap for nodemon if preferred)
+npm run dev
+```
+
+The server starts on **http://localhost:3000** by default.
+
+Visit `http://localhost:3000` in your browser or API client — you'll see the welcome message with a full list of available endpoints.
+
+To use a different port:
+
+```bash
+PORT=4000 npm start
+```
+
+---
+
+## API Endpoint Documentation
+
+Base URL: `http://localhost:3000`
+
+All responses follow this envelope:
+
+```json
+{
+  "success": true | false,
+  "message": "Human-readable result",
+  "data": { ... }
+}
+```
+
+Validation errors return HTTP 400 with a field-level `errors` array:
+
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": [
+    { "field": "completionDate", "message": "completionDate must be a valid ISO 8601 date (YYYY-MM-DD)" }
+  ]
+}
+```
+
+---
+
+### 1. List Courses
+
+Retrieve a paginated list of courses, with optional search, filter and sort.
+
+```
+GET /api/courses
+```
+
+**Query Parameters**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `search` | string | — | Case-insensitive text search on name and description |
+| `status` | string | — | Filter by `Not Started`, `In Progress`, or `Completed` |
+| `sortBy` | string | `createdAt` | Sort field: `name`, `status`, `completionDate`, `createdAt` |
+| `order` | string | `asc` | Sort direction: `asc` or `desc` |
+| `page` | integer | `1` | Page number (minimum 1) |
+| `limit` | integer | `10` | Results per page (minimum 1, maximum 100) |
+
+**Example — get all courses**
+
+```bash
+curl http://localhost:3000/api/courses
+```
+
+**Example — search, filter and paginate**
+
+```bash
+curl "http://localhost:3000/api/courses?search=react&status=In%20Progress&sortBy=name&order=asc&page=1&limit=5"
+```
+
+**Response**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "React Fundamentals",
+      "description": "Build UIs with React hooks and components",
+      "completionDate": "2026-09-30",
+      "status": "In Progress",
+      "createdAt": "2026-05-24T10:00:00.000Z",
+      "updatedAt": null
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "totalPages": 1,
+  "limit": 5
+}
+```
+
+---
+
+### 2. Get a Course
+
+Retrieve a single course by its UUID.
+
+```
+GET /api/courses/:id
+```
+
+**Example**
+
+```bash
+curl http://localhost:3000/api/courses/a1b2c3d4-e5f6-7890-abcd-ef1234567890
+```
+
+**Response — found (200)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "React Fundamentals",
+    "description": "Build UIs with React hooks and components",
+    "completionDate": "2026-09-30",
+    "status": "In Progress",
+    "createdAt": "2026-05-24T10:00:00.000Z",
+    "updatedAt": null
+  }
+}
+```
+
+**Response — not found (404)**
+
+```json
+{
+  "success": false,
+  "message": "Course a1b2c3d4-e5f6-7890-abcd-ef1234567890 not found"
+}
+```
+
+---
+
+### 3. Create a Course
+
+Create a new course. All four fields are required.
+
+```
+POST /api/courses
+Content-Type: application/json
+```
+
+**Request Body**
+
+| Field | Type | Required | Constraints |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Non-empty, max 200 characters |
+| `description` | string | Yes | Non-empty, max 1000 characters |
+| `completionDate` | string | Yes | ISO 8601 date: `YYYY-MM-DD` |
+| `status` | string | Yes | `Not Started`, `In Progress`, or `Completed` |
+
+**Example**
+
+```bash
 curl -X POST http://localhost:3000/api/courses \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "React Fundamentals",
-    "description": "Build UIs with React",
-    "completionDate": "2026-07-31",
+    "name": "TypeScript for React Developers",
+    "description": "Add static typing to your React projects with TypeScript",
+    "completionDate": "2026-10-31",
     "status": "Not Started"
   }'
-
-# Update a course
-curl -X PUT http://localhost:3000/api/courses/1 \
-  -H "Content-Type: application/json" \
-  -d '{"status": "In Progress"}'
-
-# Delete a course
-curl -X DELETE http://localhost:3000/api/courses/1
 ```
 
-### Using Postman
-
-1. Download [Postman](https://www.postman.com/downloads/)
-2. Create a new request
-3. Set method to GET/POST/PUT/DELETE
-4. Enter the URL: `http://localhost:3000/api/courses`
-5. For POST/PUT requests, set Body tab to "raw" and "JSON"
-6. Click Send
-
-### Using VS Code REST Client Extension
-
-Install the REST Client extension, then create a file `test.http`:
-
-```http
-### Get all courses
-GET http://localhost:3000/api/courses
-
-### Create a new course
-POST http://localhost:3000/api/courses
-Content-Type: application/json
-
-{
-  "name": "Python for Beginners",
-  "description": "Learn Python programming from scratch",
-  "completionDate": "2026-08-31",
-  "status": "Not Started"
-}
-
-### Get a specific course
-GET http://localhost:3000/api/courses/1
-
-### Update a course
-PUT http://localhost:3000/api/courses/1
-Content-Type: application/json
-
-{
-  "status": "Completed"
-}
-
-### Delete a course
-DELETE http://localhost:3000/api/courses/1
-```
-
-## How Data is Stored & Retrieved
-
-### Data File Structure
-
-All courses are stored in `data/courses.json`:
+**Response — success (201)**
 
 ```json
-[
-  {
-    "id": 1,
-    "name": "JavaScript Basics",
-    "description": "Learn the fundamentals of JavaScript",
-    "completionDate": "2026-06-30",
-    "status": "In Progress",
-    "createdAt": "2026-05-24T10:30:00.000Z",
-    "updatedAt": "2026-05-24T11:45:00.000Z"
-  },
-  {
-    "id": 2,
-    "name": "React Fundamentals",
-    "description": "Build UIs with React",
-    "completionDate": "2026-07-31",
+{
+  "success": true,
+  "message": "Course created successfully",
+  "data": {
+    "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "name": "TypeScript for React Developers",
+    "description": "Add static typing to your React projects with TypeScript",
+    "completionDate": "2026-10-31",
     "status": "Not Started",
-    "createdAt": "2026-05-24T10:35:00.000Z"
+    "createdAt": "2026-05-24T11:30:00.000Z",
+    "updatedAt": null
   }
-]
+}
 ```
 
-### File Operations (`utils/fileHandler.js`)
+**Response — validation error (400)**
 
-The `fileHandler.js` utility module provides functions to:
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": [
+    { "field": "status", "message": "status must be one of: Not Started, In Progress, Completed" }
+  ]
+}
+```
 
-- **`readCourses()`** - Read all courses from the JSON file
-- **`writeCourses(courses)`** - Write/save courses to the JSON file
-- **`getCourseById(id)`** - Find and return a single course by ID
-- **`generateId()`** - Generate unique IDs for new courses
+---
 
-## Learning Concepts Covered
+### 4. Update a Course
 
-This project teaches:
+Partially update an existing course. All fields are optional — only the fields you send will be changed.
 
-1. **REST API Principles** - GET, POST, PUT, DELETE methods
-2. **Express.js Routing** - Creating and organizing API routes
-3. **File I/O in Node.js** - Reading and writing JSON files
-4. **Request Validation** - Validating incoming data
-5. **Error Handling** - Proper error responses with status codes
-6. **JSON Data Format** - Storing and retrieving structured data
-7. **Modular Code** - Separating concerns with utilities and routes
+```
+PUT /api/courses/:id
+Content-Type: application/json
+```
 
-## Example Workflow
+**Request Body** (all fields optional, same constraints as create)
 
-1. **Start the server**: `npm start`
-2. **Create a course** via POST request
-3. **View all courses** via GET request
-4. **Update course status** via PUT request
-5. **Delete course** via DELETE request
-6. **Check `data/courses.json`** to see the persisted data
+| Field | Type | Constraints |
+|-------|------|-------------|
+| `name` | string | Non-empty, max 200 characters |
+| `description` | string | Non-empty, max 1000 characters |
+| `completionDate` | string | ISO 8601 date: `YYYY-MM-DD` |
+| `status` | string | `Not Started`, `In Progress`, or `Completed` |
 
-## Common Issues & Solutions
+**Example — update status only**
 
-### Port Already in Use
-If you see "Port 3000 is already in use", change the port:
+```bash
+curl -X PUT http://localhost:3000/api/courses/b2c3d4e5-f6a7-8901-bcde-f12345678901 \
+  -H "Content-Type: application/json" \
+  -d '{ "status": "In Progress" }'
+```
+
+**Example — update multiple fields**
+
+```bash
+curl -X PUT http://localhost:3000/api/courses/b2c3d4e5-f6a7-8901-bcde-f12345678901 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "completionDate": "2026-11-30",
+    "status": "Completed"
+  }'
+```
+
+**Response — success (200)**
+
+```json
+{
+  "success": true,
+  "message": "Course updated successfully",
+  "data": {
+    "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "name": "TypeScript for React Developers",
+    "description": "Add static typing to your React projects with TypeScript",
+    "completionDate": "2026-11-30",
+    "status": "Completed",
+    "createdAt": "2026-05-24T11:30:00.000Z",
+    "updatedAt": "2026-05-24T14:15:00.000Z"
+  }
+}
+```
+
+---
+
+### 5. Delete a Course
+
+Permanently delete a course. Returns the deleted course object.
+
+```
+DELETE /api/courses/:id
+```
+
+**Example**
+
+```bash
+curl -X DELETE http://localhost:3000/api/courses/b2c3d4e5-f6a7-8901-bcde-f12345678901
+```
+
+**Response — success (200)**
+
+```json
+{
+  "success": true,
+  "message": "Course deleted successfully",
+  "data": {
+    "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "name": "TypeScript for React Developers",
+    "description": "Add static typing to your React projects with TypeScript",
+    "completionDate": "2026-11-30",
+    "status": "Completed",
+    "createdAt": "2026-05-24T11:30:00.000Z",
+    "updatedAt": "2026-05-24T14:15:00.000Z"
+  }
+}
+```
+
+**Response — not found (404)**
+
+```json
+{
+  "success": false,
+  "message": "Course b2c3d4e5-f6a7-8901-bcde-f12345678901 not found"
+}
+```
+
+---
+
+## Validation Rules
+
+### Create (`POST`) — all fields required
+
+| Field | Rule |
+|-------|------|
+| `name` | Required. String. Max 200 characters. |
+| `description` | Required. String. Max 1000 characters. |
+| `completionDate` | Required. ISO 8601 format: `YYYY-MM-DD`. |
+| `status` | Required. Must be exactly: `Not Started`, `In Progress`, or `Completed`. |
+
+### Update (`PUT`) — all fields optional
+
+The same constraints apply when a field is included; omitting a field leaves it unchanged.
+
+### List (`GET`) — query parameter rules
+
+| Parameter | Rule |
+|-----------|------|
+| `status` | Must be `Not Started`, `In Progress`, or `Completed` if provided. |
+| `page` | Must be a positive integer if provided. |
+| `limit` | Must be between 1 and 100 if provided. |
+| `sortBy` | Must be `name`, `status`, `completionDate`, or `createdAt` if provided. |
+| `order` | Must be `asc` or `desc` if provided. |
+
+---
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `3000` | Port the server listens on |
+| `CORS_ORIGIN` | `*` | Allowed CORS origin. Set to your frontend URL in production, e.g. `https://myapp.com` |
+
+**Example — production start**
+
+```bash
+PORT=8080 CORS_ORIGIN=https://myapp.com npm start
+```
+
+---
+
+## Running Tests
+
+The test suite uses Jest and Supertest. It runs against an isolated temporary data file and does not affect `data/courses.json`.
+
+```bash
+# Run all 20 tests once
+npm test
+
+# Run in watch mode (re-runs on file save)
+npm run test:watch
+```
+
+**Test coverage includes:**
+
+- Creating courses with valid and invalid data
+- Listing with search, status filter, sort and pagination
+- Getting a single course by UUID
+- Partial updates with validation
+- Deleting courses
+- 404 responses for all unknown IDs
+- CORS header presence
+
+---
+
+## Troubleshooting
+
+### Port already in use
+
+```
+Error: listen EADDRINUSE: address already in use :::3000
+```
+
+Another process is using port 3000. Either stop it or start CodeCraftHub on a different port:
+
 ```bash
 PORT=3001 npm start
 ```
 
-### File Not Found Errors
-Make sure the `data/` directory exists:
+To find and kill the process using port 3000:
+
 ```bash
-mkdir -p data
+# macOS / Linux
+lsof -ti:3000 | xargs kill
+
+# Windows (PowerShell)
+netstat -ano | findstr :3000
+taskkill /PID <PID> /F
 ```
 
-### JSON Parsing Errors
-The `data/courses.json` file must contain valid JSON. If corrupted, reset it:
+---
+
+### Cannot find module errors
+
+```
+Error: Cannot find module 'express'
+```
+
+Dependencies have not been installed. Run:
+
+```bash
+npm install
+```
+
+---
+
+### data/courses.json is corrupted or empty
+
+If the data file contains invalid JSON, the server will return empty results on every request. Reset it:
+
 ```bash
 echo "[]" > data/courses.json
 ```
 
-## Next Steps & Enhancements
+If the `data/` directory is missing entirely:
 
-Once comfortable with this project, you can add:
+```bash
+mkdir -p data && echo "[]" > data/courses.json
+```
 
-- ✅ User authentication
-- ✅ Database integration (MongoDB, PostgreSQL)
-- ✅ Web frontend (React, Vue, HTML/CSS)
-- ✅ Progress tracking and statistics
-- ✅ Course categories and tags
-- ✅ Search and filter functionality
-- ✅ Unit testing with Jest
-- ✅ API documentation with Swagger
+---
+
+### Request returns 400 with unexpected validation errors
+
+Check that your request includes `Content-Type: application/json` in the headers and that the body is valid JSON. A missing header causes Express to skip body parsing.
+
+```bash
+curl -X POST http://localhost:3000/api/courses \
+  -H "Content-Type: application/json" \     # <-- required
+  -d '{ "name": "..." }'
+```
+
+---
+
+### CORS errors in the browser
+
+If a browser-based frontend receives a CORS error, the `CORS_ORIGIN` variable needs to match your frontend's origin exactly (no trailing slash):
+
+```bash
+CORS_ORIGIN=http://localhost:5173 npm start
+```
+
+---
+
+### Tests fail with "jest: command not found"
+
+Dev dependencies are missing. Install them:
+
+```bash
+npm install
+```
+
+If the problem persists, run Jest directly via npx:
+
+```bash
+npx jest --runInBand --forceExit
+```
+
+---
+
+### A course update silently keeps old values
+
+`PUT` only updates fields you include in the request body. Fields you omit are left unchanged by design (partial update). To clear a field like `completionDate`, explicitly send the new value.
+
+---
 
 ## License
 
-MIT License - Feel free to use this project for learning purposes!
-
-## Support
-
-For questions or issues:
-1. Check the API documentation above
-2. Verify your request format matches the examples
-3. Check the server console for error messages
-4. Review the code comments in `routes/courses.js`
-
-Happy Learning! 🚀
-````
+MIT — free to use for learning and personal projects.
