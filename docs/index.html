@@ -568,7 +568,7 @@
           <td class="td-date">${formatDate(c.created_at || c.createdAt)}</td>
           <td class="td-actions">
             <button class="btn btn-edit"   onclick="openEdit('${esc(c.id)}')">✏️ Edit</button>
-            <button class="btn btn-delete" onclick="deleteCourse('${esc(c.id)}', '${esc(c.name).replace(/'/g,"\\'")}')">🗑️ Remove</button>
+            <button class="btn btn-delete" onclick="handleDelete('${esc(c.id)}', '${esc(c.name).replace(/'/g,"\\'")}')">Remove</button>
           </td>
         </tr>
       `).join('');
@@ -687,7 +687,7 @@
     }
 
     // ── Delete Course ───────────────────────────────────────────────────────
-    async function deleteCourse(id, name) {
+    async function handleDelete(id, name) {
       if (!confirm(`Delete "${name}"?\n\nThis action cannot be undone.`)) return;
       try {
         await api(`/courses/${id}`, { method: 'DELETE' });
