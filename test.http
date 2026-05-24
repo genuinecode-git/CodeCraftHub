@@ -1,0 +1,111 @@
+### CodeCraftHub REST API Test File
+### Use with VS Code REST Client Extension (https://marketplace.visualstudio.com/items?itemName=humao.rest-client)
+
+@baseUrl = http://localhost:3000/api
+
+### 1. Get all courses
+GET {{baseUrl}}/courses
+
+### 2. Create a new course - JavaScript
+POST {{baseUrl}}/courses
+Content-Type: application/json
+
+{
+  "name": "JavaScript Basics",
+  "description": "Learn the fundamentals of JavaScript including variables, functions, and event handling",
+  "completionDate": "2026-06-30",
+  "status": "Not Started"
+}
+
+### 3. Create a new course - React
+POST {{baseUrl}}/courses
+Content-Type: application/json
+
+{
+  "name": "React Fundamentals",
+  "description": "Build dynamic user interfaces with React, components, props, and state",
+  "completionDate": "2026-07-31",
+  "status": "Not Started"
+}
+
+### 4. Create a new course - Node.js
+POST {{baseUrl}}/courses
+Content-Type: application/json
+
+{
+  "name": "Node.js & Express",
+  "description": "Build backend applications with Node.js and Express framework",
+  "completionDate": "2026-08-15",
+  "status": "In Progress"
+}
+
+### 5. Get a specific course (ID: 1)
+GET {{baseUrl}}/courses/1
+
+### 6. Get a specific course (ID: 2)
+GET {{baseUrl}}/courses/2
+
+### 7. Update course status to In Progress (ID: 1)
+PUT {{baseUrl}}/courses/1
+Content-Type: application/json
+
+{
+  "status": "In Progress"
+}
+
+### 8. Update course status to Completed (ID: 3)
+PUT {{baseUrl}}/courses/3
+Content-Type: application/json
+
+{
+  "status": "Completed"
+}
+
+### 9. Update multiple fields (ID: 2)
+PUT {{baseUrl}}/courses/2
+Content-Type: application/json
+
+{
+  "status": "In Progress",
+  "completionDate": "2026-07-15",
+  "description": "Build interactive UIs with React, hooks, context API, and state management"
+}
+
+### 10. Delete a course (ID: 3)
+DELETE {{baseUrl}}/courses/3
+
+### 11. Get all courses again to verify changes
+GET {{baseUrl}}/courses
+
+### Test: Try to get non-existent course (should return 404)
+GET {{baseUrl}}/courses/999
+
+### Test: Try to update non-existent course (should return 404)
+PUT {{baseUrl}}/courses/999
+Content-Type: application/json
+
+{
+  "status": "Completed"
+}
+
+### Test: Try to delete non-existent course (should return 404)
+DELETE {{baseUrl}}/courses/999
+
+### Test: Invalid status value (should return 400)
+POST {{baseUrl}}/courses
+Content-Type: application/json
+
+{
+  "name": "Invalid Course",
+  "description": "This course has an invalid status",
+  "completionDate": "2026-06-30",
+  "status": "Invalid Status"
+}
+
+### Test: Missing required fields (should return 400)
+POST {{baseUrl}}/courses
+Content-Type: application/json
+
+{
+  "name": "Incomplete Course"
+}
