@@ -2,15 +2,17 @@
   "name": "codecrafthub",
   "version": "1.0.0",
   "description": "A simple personalized learning platform for developers to track courses",
-  "main": "server.js",
+  "main": "app.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node app.js",
+    "dev": "node app.js"
   },
   "keywords": [
     "learning",
     "courses",
-    "rest-api"
+    "rest-api",
+    "express",
+    "nodejs"
   ],
   "author": "",
   "license": "MIT",
